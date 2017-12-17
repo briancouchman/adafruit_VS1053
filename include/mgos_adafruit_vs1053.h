@@ -33,7 +33,7 @@ boolean mgos_vs1053_paused(Adafruit_VS1053_FilePlayer *player);
 
 boolean mgos_vs1053_stopped(Adafruit_VS1053_FilePlayer *player);
 
-File mgos_vs1053_currentTrack(Adafruit_VS1053_FilePlayer *player);
+void /*File*/ mgos_vs1053_currentTrack(Adafruit_VS1053_FilePlayer *player);
 
 boolean mgos_vs1053_playingMusic(Adafruit_VS1053_FilePlayer *player);
 

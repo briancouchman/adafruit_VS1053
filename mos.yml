@@ -1,25 +1,27 @@
 author: Brian Couchman
 description: Adafruit VS1053 integration for Mongoose OS
 # arch: PLATFORM
+type: lib
 version: 1.0
-manifest_version: 2017-05-18
-libs_version: ${mos.version}
-modules_version: ${mos.version}
-mongoose_os_version: ${mos.version}
+# manifest_version: 2017-05-18
+# libs_version: ${mos.version}
+# modules_version: ${mos.version}
+# mongoose_os_version: ${mos.version}
+platform: esp32
 
 config_schema:
-
 sources:
   - src
-
 includes:
   - include
-
 tags:
   - js
   - c
-
 filesystem:
   - fs
-
 libs:
+  - origin: https://github.com/mongoose-os-libs/arduino-compat
+  - origin: https://github.com/mongoose-os-libs/arduino-wire
+  - origin: https://github.com/mongoose-os-libs/arduino-spi
+
+skeleton_version: 2017-05-18

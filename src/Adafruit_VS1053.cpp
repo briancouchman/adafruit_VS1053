@@ -12,8 +12,12 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-#include <Adafruit_VS1053.h>
-#include <SD.h>
+
+#include "Adafruit_VS1053.h"
+// #include <SD.h>
+// #include "avr/pgmspace.h"
+#include "mgos_spi.h"
+#include "SPI.h"
 
 #if defined(ARDUINO_STM32_FEATHER)
    #define digitalPinToInterrupt(x) x
@@ -81,7 +85,7 @@ boolean Adafruit_VS1053_FilePlayer::useInterrupt(uint8_t type) {
     if (irq == -1)
       return false;
 #if defined(SPI_HAS_TRANSACTION) && !defined(ESP8266) && !defined(ESP32) && !defined(ARDUINO_STM32_FEATHER)
-    SPI.usingInterrupt(irq);
+    // SPI.usingInterrupt(irq);
 #endif
     attachInterrupt(irq, feeder, CHANGE);
     return true;
@@ -151,7 +155,7 @@ void Adafruit_VS1053_FilePlayer::stopPlaying(void) {
 
   // wrap it up!
   playingMusic = false;
-  currentTrack.close();
+  // currentTrack.close();
 }
 
 void Adafruit_VS1053_FilePlayer::pausePlaying(boolean pause) {
@@ -164,11 +168,11 @@ void Adafruit_VS1053_FilePlayer::pausePlaying(boolean pause) {
 }
 
 boolean Adafruit_VS1053_FilePlayer::paused(void) {
-  return (!playingMusic && currentTrack);
+  return (!playingMusic /* && currentTrack*/);
 }
 
 boolean Adafruit_VS1053_FilePlayer::stopped(void) {
-  return (!playingMusic && !currentTrack);
+  return (!playingMusic /* && !currentTrack */);
 }
 
 
@@ -179,10 +183,10 @@ boolean Adafruit_VS1053_FilePlayer::startPlayingFile(const char *trackname) {
   sciWrite(VS1053_REG_WRAMADDR, 0x1e29);
   sciWrite(VS1053_REG_WRAM, 0);
 
-  currentTrack = SD.open(trackname);
-  if (!currentTrack) {
-    return false;
-  }
+  // currentTrack = SD.open(trackname);
+  // if (!currentTrack) {
+  //   return false;
+  // }
 
   // don't let the IRQ get triggered by accident here
   noInterrupts();
@@ -232,7 +236,7 @@ void Adafruit_VS1053_FilePlayer::feedBuffer(void) {
 
 void Adafruit_VS1053_FilePlayer::feedBuffer_noLock(void) {
   if ((! playingMusic) // paused or stopped
-      || (! currentTrack)
+      // || (! currentTrack)
       || (! readyForData())) {
     return; // paused or stopped
   }
@@ -241,14 +245,14 @@ void Adafruit_VS1053_FilePlayer::feedBuffer_noLock(void) {
   // Feed the hungry buffer! :)
   while (playingMusic/*readyForData()*/) {
     // Read some audio data from the SD card file
-    int bytesread = currentTrack.read(mp3buffer, VS1053_DATABUFFERLEN);
+    int bytesread = 256; //currentTrack.read(mp3buffer, VS1053_DATABUFFERLEN);
 
-    if (bytesread == 0) {
-      // must be at the end of the file, wrap it up!
-      playingMusic = false;
-      currentTrack.close();
-      break;
-    }
+    // if (bytesread == 0) {
+    //   // must be at the end of the file, wrap it up!
+    //   playingMusic = false;
+    //   currentTrack.close();
+    //   break;
+    // }
 
     while(!readyForData()){
       //wait for the buffer to be ready to receive more data
@@ -301,87 +305,87 @@ void Adafruit_VS1053::applyPatch(const uint16_t *patch, uint16_t patchsize) {
   uint16_t i = 0;
 
  // Serial.print("Patch size: "); Serial.println(patchsize);
-  while ( i < patchsize ) {
-    uint16_t addr, n, val;
-
-    addr = pgm_read_word(patch++);
-    n = pgm_read_word(patch++);
-    i += 2;
-
-    //Serial.println(addr, HEX);
-    if (n & 0x8000U) { // RLE run, replicate n samples
-      n &= 0x7FFF;
-      val = pgm_read_word(patch++);
-      i++;
-      while (n--) {
-	sciWrite(addr, val);
-      }
-    } else {           // Copy run, copy n samples
-      while (n--) {
-	val = pgm_read_word(patch++);
-	i++;
-	sciWrite(addr, val);
-      }
-    }
-  }
+  // while ( i < patchsize ) {
+  //   uint16_t addr, n, val;
+  //
+  //   addr = pgm_read_word(patch++);
+  //   n = pgm_read_word(patch++);
+  //   i += 2;
+  //
+  //   //Serial.println(addr, HEX);
+  //   if (n & 0x8000U) { // RLE run, replicate n samples
+  //     n &= 0x7FFF;
+  //     val = pgm_read_word(patch++);
+  //     i++;
+  //     while (n--) {
+	// sciWrite(addr, val);
+  //     }
+  //   } else {           // Copy run, copy n samples
+  //     while (n--) {
+	// val = pgm_read_word(patch++);
+	// i++;
+	// sciWrite(addr, val);
+  //     }
+  //   }
+  // }
 }
 
-
-uint16_t Adafruit_VS1053::loadPlugin(char *plugname) {
-
-  File plugin = SD.open(plugname);
-  if (!plugin) {
-    Serial.println("Couldn't open the plugin file");
-    Serial.println(plugin);
-    return 0xFFFF;
-  }
-
-  if ((plugin.read() != 'P') ||
-      (plugin.read() != '&') ||
-      (plugin.read() != 'H'))
-    return 0xFFFF;
-
-  uint16_t type;
-
- // Serial.print("Patch size: "); Serial.println(patchsize);
-  while ((type = plugin.read()) >= 0) {
-    uint16_t offsets[] = {0x8000UL, 0x0, 0x4000UL};
-    uint16_t addr, len;
-
-    //Serial.print("type: "); Serial.println(type, HEX);
-
-    if (type >= 4) {
-        plugin.close();
-	return 0xFFFF;
-    }
-
-    len = plugin.read();    len <<= 8;
-    len |= plugin.read() & ~1;
-    addr = plugin.read();    addr <<= 8;
-    addr |= plugin.read();
-    //Serial.print("len: "); Serial.print(len);
-    //Serial.print(" addr: $"); Serial.println(addr, HEX);
-
-    if (type == 3) {
-      // execute rec!
-      plugin.close();
-      return addr;
-    }
-
-    // set address
-    sciWrite(VS1053_REG_WRAMADDR, addr + offsets[type]);
-    // write data
-    do {
-      uint16_t data;
-      data = plugin.read();    data <<= 8;
-      data |= plugin.read();
-      sciWrite(VS1053_REG_WRAM, data);
-    } while ((len -=2));
-  }
-
-  plugin.close();
-  return 0xFFFF;
-}
+//
+// uint16_t Adafruit_VS1053::loadPlugin(char *plugname) {
+//
+//   File plugin = SD.open(plugname);
+//   if (!plugin) {
+//     Serial.println("Couldn't open the plugin file");
+//     Serial.println(plugin);
+//     return 0xFFFF;
+//   }
+//
+//   if ((plugin.read() != 'P') ||
+//       (plugin.read() != '&') ||
+//       (plugin.read() != 'H'))
+//     return 0xFFFF;
+//
+//   uint16_t type;
+//
+//  // Serial.print("Patch size: "); Serial.println(patchsize);
+//   while ((type = plugin.read()) >= 0) {
+//     uint16_t offsets[] = {0x8000UL, 0x0, 0x4000UL};
+//     uint16_t addr, len;
+//
+//     //Serial.print("type: "); Serial.println(type, HEX);
+//
+//     if (type >= 4) {
+//         plugin.close();
+// 	return 0xFFFF;
+//     }
+//
+//     len = plugin.read();    len <<= 8;
+//     len |= plugin.read() & ~1;
+//     addr = plugin.read();    addr <<= 8;
+//     addr |= plugin.read();
+//     //Serial.print("len: "); Serial.print(len);
+//     //Serial.print(" addr: $"); Serial.println(addr, HEX);
+//
+//     if (type == 3) {
+//       // execute rec!
+//       plugin.close();
+//       return addr;
+//     }
+//
+//     // set address
+//     sciWrite(VS1053_REG_WRAMADDR, addr + offsets[type]);
+//     // write data
+//     do {
+//       uint16_t data;
+//       data = plugin.read();    data <<= 8;
+//       data |= plugin.read();
+//       sciWrite(VS1053_REG_WRAM, data);
+//     } while ((len -=2));
+//   }
+//
+//   plugin.close();
+//   return 0xFFFF;
+// }
 
 
 
@@ -465,10 +469,12 @@ uint8_t Adafruit_VS1053::begin(void) {
     pinMode(_clk, OUTPUT);
     pinMode(_miso, INPUT);
   } else {
+    // SPI.beginTransaction(new SPISettings());
     SPI.begin();
     SPI.setDataMode(SPI_MODE0);
     SPI.setBitOrder(MSBFIRST);
-    SPI.setClockDivider(SPI_CLOCK_DIV128);
+    //SPI.setClockDivider(8000000);
+    SPI.setFrequency(8000000);
   }
 
   reset();
@@ -477,10 +483,10 @@ uint8_t Adafruit_VS1053::begin(void) {
 }
 
 void Adafruit_VS1053::dumpRegs(void) {
-  Serial.print("Mode = 0x"); Serial.println(sciRead(VS1053_REG_MODE), HEX);
-  Serial.print("Stat = 0x"); Serial.println(sciRead(VS1053_REG_STATUS), HEX);
-  Serial.print("ClkF = 0x"); Serial.println(sciRead(VS1053_REG_CLOCKF), HEX);
-  Serial.print("Vol. = 0x"); Serial.println(sciRead(VS1053_REG_VOLUME), HEX);
+  // Serial.print("Mode = 0x"); Serial.println(sciRead(VS1053_REG_MODE), HEX);
+  // Serial.print("Stat = 0x"); Serial.println(sciRead(VS1053_REG_STATUS), HEX);
+  // Serial.print("ClkF = 0x"); Serial.println(sciRead(VS1053_REG_CLOCKF), HEX);
+  // Serial.print("Vol. = 0x"); Serial.println(sciRead(VS1053_REG_VOLUME), HEX);
 }
 
 
@@ -509,7 +515,7 @@ boolean Adafruit_VS1053::prepareRecordOgg(char *plugname) {
 
   int pluginStartAddr = loadPlugin(plugname);
   if (pluginStartAddr == 0xFFFF) return false;
-  Serial.print("Plugin at $"); Serial.println(pluginStartAddr, HEX);
+  // Serial.print("Plugin at $"); Serial.println(pluginStartAddr, HEX);
   if (pluginStartAddr != 0x34) return false;
 
   return true;

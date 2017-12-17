@@ -41,9 +41,9 @@ let Adafruit_VS1053 = {
           return Adafruit_VS1053._isPaused(this.player);
         },
 
-        isPlaying: function(){
-          return Adafruit_VS1053._isPlaying(this.player);
-        },
+        // isPlaying: function(){
+        //   return Adafruit_VS1053._isPlaying(this.player);
+        // },
 
         getCurrentTrack: function(){
           return Adafruit_VS1053._currentTrack(this.player);
