@@ -1,36 +1,21 @@
-/***************************************************
-  This is a library for the Adafruit VS1053 Codec Breakout
-
-  Designed specifically to work with the Adafruit VS1053 Codec Breakout
-  ----> https://www.adafruit.com/products/1381
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
 #ifndef ADAFRUIT_VS1053_H
 #define ADAFRUIT_VS1053_H
 
 #define TODO 1
 
-#if (ARDUINO >= 100)
+// #if (ARDUINO >= 100)
  #include "Arduino.h"
-#else
- #include <WProgram.h>
-#endif
+// #else
+//  // #include <WProgram.h>
+// #endif
 // #include <pins_arduino.h>
 #include "mgos_features.h"
 
-#if !defined(ARDUINO_STM32_FEATHER)
+// #if !defined(ARDUINO_STM32_FEATHER)
 #include "pins_arduino.h"
 // #include "wiring_private.h"
-#endif
+// #endif
 
-// #include <SPI.h>
-// #include <SD.h>
 
 // define here the size of a register!
 #if defined(ARDUINO_STM32_FEATHER)

@@ -13,11 +13,13 @@
  ****************************************************/
 
 
-#include "Adafruit_VS1053.h"
-// #include <SD.h>
 // #include "avr/pgmspace.h"
+#include "mgos_SD.h"
 #include "mgos_spi.h"
 #include "SPI.h"
+// #include <Wire.h>
+
+#include "Adafruit_VS1053.h"
 
 #if defined(ARDUINO_STM32_FEATHER)
    #define digitalPinToInterrupt(x) x
@@ -35,7 +37,7 @@ SIGNAL(TIMER0_COMPA_vect) {
 }
 #endif
 
-volatile boolean feedBufferLock = false;
+volatile bool feedBufferLock = false;
 
 static void feeder(void) {
   myself->feedBuffer();
@@ -45,7 +47,7 @@ static void feeder(void) {
 #define VS1053_DATA_SPI_SETTING     SPISettings(8000000, MSBFIRST, SPI_MODE0)
 
 
-boolean Adafruit_VS1053_FilePlayer::useInterrupt(uint8_t type) {
+bool Adafruit_VS1053_FilePlayer::useInterrupt(uint8_t type) {
   myself = this;  // oy vey
 
   if (type == VS1053_FILEPLAYER_TIMER0_INT) {
@@ -122,7 +124,7 @@ Adafruit_VS1053_FilePlayer::Adafruit_VS1053_FilePlayer(
   _cardCS = cardcs;
 }
 
-boolean Adafruit_VS1053_FilePlayer::begin(void) {
+bool Adafruit_VS1053_FilePlayer::begin(void) {
   // Set the card to be disabled while we get the VS1053 up
   pinMode(_cardCS, OUTPUT);
 
@@ -137,7 +139,7 @@ boolean Adafruit_VS1053_FilePlayer::begin(void) {
 }
 
 
-boolean Adafruit_VS1053_FilePlayer::playFullFile(const char *trackname) {
+bool Adafruit_VS1053_FilePlayer::playFullFile(const char *trackname) {
   if (! startPlayingFile(trackname)) return false;
 
   while (playingMusic) {
@@ -158,7 +160,7 @@ void Adafruit_VS1053_FilePlayer::stopPlaying(void) {
   // currentTrack.close();
 }
 
-void Adafruit_VS1053_FilePlayer::pausePlaying(boolean pause) {
+void Adafruit_VS1053_FilePlayer::pausePlaying(bool pause) {
   if (pause)
     playingMusic = false;
   else {
@@ -167,23 +169,23 @@ void Adafruit_VS1053_FilePlayer::pausePlaying(boolean pause) {
   }
 }
 
-boolean Adafruit_VS1053_FilePlayer::paused(void) {
+bool Adafruit_VS1053_FilePlayer::paused(void) {
   return (!playingMusic /* && currentTrack*/);
 }
 
-boolean Adafruit_VS1053_FilePlayer::stopped(void) {
+bool Adafruit_VS1053_FilePlayer::stopped(void) {
   return (!playingMusic /* && !currentTrack */);
 }
 
 
-boolean Adafruit_VS1053_FilePlayer::startPlayingFile(const char *trackname) {
+bool Adafruit_VS1053_FilePlayer::startPlayingFile(const char *trackname) {
   // reset playback
   sciWrite(VS1053_REG_MODE, VS1053_MODE_SM_LINE1 | VS1053_MODE_SM_SDINEW);
   // resync
   sciWrite(VS1053_REG_WRAMADDR, 0x1e29);
   sciWrite(VS1053_REG_WRAM, 0);
 
-  // currentTrack = SD.open(trackname);
+  //TODO currentTrack = SD.openFile(trackname);
   // if (!currentTrack) {
   //   return false;
   // }
@@ -390,7 +392,7 @@ void Adafruit_VS1053::applyPatch(const uint16_t *patch, uint16_t patchsize) {
 
 
 
-boolean Adafruit_VS1053::readyForData(void) {
+bool Adafruit_VS1053::readyForData(void) {
   return digitalRead(_dreq);
 }
 
@@ -499,7 +501,7 @@ uint16_t Adafruit_VS1053::recordedReadWord(void) {
 }
 
 
-boolean Adafruit_VS1053::prepareRecordOgg(char *plugname) {
+bool Adafruit_VS1053::prepareRecordOgg(char *plugname) {
   sciWrite(VS1053_REG_CLOCKF, 0xC000);  // set max clock
   delay(1);    while (! readyForData() );
 
@@ -525,7 +527,7 @@ void Adafruit_VS1053::stopRecordOgg(void) {
   sciWrite(VS1053_SCI_AICTRL3, 1);
 }
 
-void Adafruit_VS1053::startRecordOgg(boolean mic) {
+void Adafruit_VS1053::startRecordOgg(bool mic) {
   /* Set VS1053 mode bits as instructed in the VS1053b Ogg Vorbis Encoder
      manual. Note: for microphone input, leave SMF_LINE1 unset! */
   if (mic) {
@@ -587,7 +589,7 @@ uint16_t Adafruit_VS1053::GPIO_digitalRead(void) {
   return sciRead(VS1053_REG_WRAM) & 0xFF;
 }
 
-boolean Adafruit_VS1053::GPIO_digitalRead(uint8_t i) {
+bool Adafruit_VS1053::GPIO_digitalRead(uint8_t i) {
   if (i > 7) return 0;
 
   sciWrite(VS1053_REG_WRAMADDR, VS1053_GPIO_IDATA);

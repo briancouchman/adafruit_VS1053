@@ -1,16 +1,16 @@
 let Adafruit_VS1053 = {
 
-    _create:        ffi('void *mgos_adafruit_vs1053_create()'),
-    _bgn:           ffi('int mgos_adafruit_vs1053_begin(void *)'),
-    _startPlaying:  ffi('int mgos_adafruit_vs1053_startPlayingFile(void *, char *)'),
-    _stopPlaying:   ffi('void mgos_adafruit_vs1053_stopPlaying(void *)'),
-    _pausePlaying:  ffi('void mgos_adafruit_vs1053_pausePlaying(void *)'),
-    _isPaused:      ffi('int mgos_adafruit_vs1053_paused(void *)'),
-    _isStopped:     ffi('int mgos_adafruit_vs1053_stopped(void *)'),
-    _isPlaying:     ffi('int mgos_adafruit_vs1053_playingMusic(void *)'),
-    _currentTrack:  ffi('void *mgos_adafruit_vs1053_currentTrack(void *)'),
-    _close:         ffi('void mgos_adafruit_vs1053_close(void *)'),
-    _setVolume:     ffi('void mgos_adafruit_vs1053_setVolume(void *, uint8_t left, uint8_t right)'),
+    _create:        ffi('void *mgos_adafruit_VS1053_create()'),
+    _bgn:           ffi('int mgos_adafruit_VS1053_begin(void *)'),
+    _startPlaying:  ffi('int mgos_adafruit_VS1053_startPlayingFile(void *, char *)'),
+    _stopPlaying:   ffi('void mgos_adafruit_VS1053_stopPlaying(void *)'),
+    _pausePlaying:  ffi('void mgos_adafruit_VS1053_pausePlaying(void *)'),
+    _isPaused:      ffi('int mgos_adafruit_VS1053_paused(void *)'),
+    _isStopped:     ffi('int mgos_adafruit_VS1053_stopped(void *)'),
+    // _isPlaying:     ffi('int mgos_adafruit_VS1053_playingMusic(void *)'),
+    // _currentTrack:  ffi('void *mgos_adafruit_VS1053_currentTrack(void *)'),
+    _close:         ffi('void mgos_adafruit_VS1053_close(void *)'),
+    _setVolume:     ffi('void mgos_adafruit_VS1053_setVolume(void *, int left, int right)'),
 
     _proto: {
 
@@ -45,9 +45,9 @@ let Adafruit_VS1053 = {
         //   return Adafruit_VS1053._isPlaying(this.player);
         // },
 
-        getCurrentTrack: function(){
-          return Adafruit_VS1053._currentTrack(this.player);
-        },
+        // getCurrentTrack: function(){
+        //   return Adafruit_VS1053._currentTrack(this.player);
+        // },
 
         setVolume: function(left, right){
           left = left > 100? 100: left;
