@@ -16,10 +16,12 @@ filesystem:
   - fs
 
 libs:
-  - origin: /Users/bcouchman/Documents/Perso/projects/meeio/electronics/mongooseos/libs/arduino-compat
+  # - origin: /Users/bcouchman/Documents/Perso/projects/meeio/electronics/mongooseos/libs/arduino-compat
+  - origin: https://github.com/mongoose-os-libs/arduino-compat
   - origin: https://github.com/mongoose-os-libs/arduino-spi
   # - origin: https://github.com/mongoose-os-libs/spi
-  - origin: /Users/bcouchman/Documents/Perso/projects/meeio/electronics/mongooseos/libs/SD
+  # - origin: /Users/bcouchman/Documents/Perso/projects/meeio/electronics/mongooseos/libs/SD
+  - origin: https://github.com/briancouchman/SD
 
 build_vars:
   MGOS_ENABLE_ARDUINO_API: 1
